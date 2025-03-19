@@ -199,7 +199,7 @@ fun CourseChoiceScreen(
                                         if (result != null && result.isNotEmpty()) {
                                             courses = result
                                         } else {
-                                            errorMessage = "无法获取课程列表，请检查网络连接或重试"
+                                            errorMessage = "无法获取课程列表，可能是URL过期了，请检查网络连接和URL并重试"
                                         }
                                     } catch (e: Exception) {
                                         errorMessage = "获取课程列表时出错: ${e.message}"
