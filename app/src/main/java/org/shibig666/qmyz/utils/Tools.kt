@@ -18,6 +18,7 @@ private object Logger {
     fun error(message: () -> String) = Log.e(TAG, message())
 }
 
+
 suspend fun getCookieFromUrl(url: String): String? = withContext(Dispatchers.IO) {
     val client = OkHttpClient()
 
@@ -38,6 +39,7 @@ suspend fun getCookieFromUrl(url: String): String? = withContext(Dispatchers.IO)
         } else {
             // 提取Set-Cookie头
             val setCookieHeader = response.headers["Set-Cookie"] ?: ""
+            Logger.info{" Set-Cookie头: $setCookieHeader"}
             val regex = Regex("JSESSIONID=([\\w-]+)", RegexOption.IGNORE_CASE)
             val JSESSIONID = regex.find(setCookieHeader)?.groups?.get(1)?.value
 
@@ -46,6 +48,21 @@ suspend fun getCookieFromUrl(url: String): String? = withContext(Dispatchers.IO)
                 null
             } else {
                 Logger.debug { "成功获取Cookie: $JSESSIONID" }
+
+                // 使用获取到的JSESSIONID再次请求
+                val secondRequest = Request.Builder()
+                    .url(url)
+                    .addHeader("Cookie", "JSESSIONID=$JSESSIONID")
+                    .get()
+                    .build()
+
+                Logger.info { "使用JSESSIONID再次请求URL" }
+                val secondResponse = client.newCall(secondRequest).execute()
+
+                if (!secondResponse.isSuccessful) {
+                    Logger.error { "带JSESSIONID的请求失败，状态码: ${secondResponse.code}" }
+                }
+
                 JSESSIONID
             }
         }
@@ -118,7 +135,6 @@ suspend fun getCourses(JSESSIONID: String): Map<String, String>? = withContext(D
         }
 
         Logger.info { "成功获取课程列表: $courseDict" }
-
         courseDict
     } catch (e: Exception) {
         Logger.error { "请求异常类型: ${e.javaClass.name}" }

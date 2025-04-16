@@ -18,6 +18,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import androidx.core.content.edit
 
 
 private const val TAG = "UpdateQuestionBank"
@@ -86,7 +87,7 @@ fun CheckForBankUpdates(
                 }
 
                 if (updated.first) {
-                    prefs.edit().putInt("bank_version", updated.second).apply()
+                    prefs.edit() { putInt("bank_version", updated.second) }
                 }
 
                 updated.first
